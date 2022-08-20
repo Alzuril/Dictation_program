@@ -85,7 +85,7 @@ def chooseTopic(choice):
         else:
             for topic in topics_list:
                 topicbtn = Button(topics_frame, text=topic,
-                          command=lambda: (topics_frame.destroy(), newStart(topic), StartRightDictation(choice, topic)))
+                          command=lambda topic=topic: (topics_frame.destroy(), StartRightDictation(choice, topic)))
                 topicbtn.pack(side="top", fill="x")
             backbtn = Button(topics_frame, text="Back", command=lambda: (topics_frame.destroy(), mainWindow()),
                              padx="10", pady="6")
