@@ -9,11 +9,14 @@ root = Tk()
 # list with foreign words and it's copy
 foreign_lang_words = []
 foreign_lang_words_copy = []
+
 # list with native words and it's copy
 native_lang_words = []
 native_lang_words_copy = []
+
 # list with indexes of shown words
 ind = []
+
 # other stuff
 counter1 = 0
 counter2 = 0
@@ -24,10 +27,11 @@ r = 0
 w = 0
 
 def newStart(topic):
+    """Resets all to default settings to start a new dictation"""
     global foreign_lang_words, native_lang_words, native_lang_words_copy
 
     def returnToDefault():
-        """Returns to default settings"""
+        """Returns settings to default"""
         global foreign_lang_words, foreign_lang_words_copy, native_lang_words, native_lang_words_copy
         global ind, counter1, counter2, y1, y2, j, r, w
         foreign_lang_words = []
@@ -44,20 +48,39 @@ def newStart(topic):
         w = 0
 
     returnToDefault()
+
+    # loading new data from file
     try:
+
+        # loading data from  file
         with open(topic + ".dat", "rb") as f:
             lines = pickle.load(f)
+
+        # divide data to different arrays
         for line in lines:
+            # split is a remnant of a past data storage system
             words = line.split(" - ")
             foreign_lang_words.append(words[0])
             native_lang_words.append(words[1])
             native_lang_words_copy.append(words[1])
-    except:
+    except EOFError:
+        # error message in case file is empty
         tkinter.messagebox.showerror("Error", "Empty file!!!")
+        # throwing an error to handle it in chooseTopic() function
+        raise EOFError
 
 def chooseTopic(choice):
+    """Starts dictation with right topic"""
 
     def StartRightDictation(choice, topic):
+        try:
+            newStart(topic)
+        except EOFError:
+            # abort function and return to main window
+            topics_frame.destroy()
+            mainWindow()
+            return
+
         if choice == 1:
             manualDictation()
         elif choice == 2:
@@ -69,40 +92,56 @@ def chooseTopic(choice):
         elif choice == 5:
             showWords(topic)
 
+    # remaking window
     root.title("Choose topic")
     root.geometry("250x200")
     topics_frame = Frame(root)
     topics_frame.pack(fill=BOTH, expand=1)
 
+    # searching for all topics in topic file
     try:
+
+        # reading file
         topics_file = open("Topics.dat", "rb")
         topics_list = pickle.load(topics_file)
         topics_file.close()
+
+        # in case empty file show error message and return to main window
         if len(topics_list) == 0:
             tkinter.messagebox.showerror("Error", "There is no topics found!")
             topics_frame.destroy()
             mainWindow()
         else:
+
+            # creating a button for every topic which starts dictation with given topic
             for topic in topics_list:
                 topicbtn = Button(topics_frame, text=topic,
                           command=lambda topic=topic: (topics_frame.destroy(), StartRightDictation(choice, topic)))
                 topicbtn.pack(side="top", fill="x")
+
+            # back button
             backbtn = Button(topics_frame, text="Back", command=lambda: (topics_frame.destroy(), mainWindow()),
                              padx="10", pady="6")
             backbtn.pack(side="bottom", fill="x")
+
+    # if there is no topic file
     except FileNotFoundError:
+
+        # show error message and return to main window
         tkinter.messagebox.showerror("Error", "There is no topics found!")
-
         topics_frame.destroy()
-
         mainWindow()
 
 def mainWindow():
+    """Program main window"""
+
+    # remaking window
     root.title("Alex's dictation")
     root.geometry("300x350")
     main_frame = Frame(root)
     main_frame.pack(fill=BOTH, expand=1)
 
+    # creating buttons
     choose_label = Label(main_frame, text="Choose what you want to do")
     choose_label.place(x=65, y=20)
     choosebtn1 = Button(main_frame, text="Add new words", command=lambda: (main_frame.destroy(), addWords()),
@@ -134,26 +173,37 @@ def mainWindow():
     choosebtn6.place(x=55, y=290)
 
 def addWords():
+    """Add topics and words"""
+
+    # remaking window
     root.title("Adding new words")
     root.geometry("325x200")
 
     def ui():
         add_words_frame = Frame(root)
         add_words_frame.pack(fill=BOTH, expand=1)
+
         topic_lbl = Label(add_words_frame, text="Enter the topic:")
         topic_lbl.place(x=110, y=30)
+
         topic_ent = Entry(add_words_frame)
         topic_ent.place(x=90, y=50)
+
         word_lbl = Label(add_words_frame, text="Enter foreign word:")
         word_lbl.place(x=10, y=80)
+
         word_ent = Entry(add_words_frame)
         word_ent.place(x=8, y=100)
+
         translation_lbl = Label(add_words_frame, text="Enter word`s translation:")
         translation_lbl.place(x=185, y=80)
+
         translation_ent = Entry(add_words_frame)
         translation_ent.place(x=190, y=100)
+
         savebtn = Button(add_words_frame, text="Save", command=lambda: saveWord(), padx="10", pady="6")
         savebtn.place(x=105, y=130)
+
         backbtn = Button(add_words_frame, text="Back", command=lambda: (add_words_frame.destroy(), mainWindow()),
                          padx="10", pady="6")
         backbtn.place(x=160, y=130)
